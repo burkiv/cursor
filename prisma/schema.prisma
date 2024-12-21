@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  username         String    @unique
+  password         String
+  name             String?
+  profilePicture   String?   @default("/default-avatar.png")
+  securityQuestion String
+  securityAnswer   String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  budgets          Budget[]
+
+  @@map("users")
+}
+
+model Budget {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  totalAmount  Float         @default(0)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  savingGoals  SavingGoal[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("budgets")
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  amount      Float
+  type        String   // "INCOME" veya "EXPENSE"
+  category    String
+  description String?
+  date        DateTime
+  budgetId    String
+  budget      Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("transactions")
+}
+
+model SavingGoal {
+  id            String    @id @default(cuid())
+  name          String
+  targetAmount  Float
+  currentAmount Float     @default(0)
+  description   String?
+  deadline      DateTime?
+  budgetId      String
+  budget        Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("saving_goals")
+} 
